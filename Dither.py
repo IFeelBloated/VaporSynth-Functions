@@ -117,8 +117,8 @@ class Dither (object):
           else:
            expr = "x 65536 /"
               
-            g2l = expr
-            g2l = g2l + " " + k0 +" <= " + g2l + " " + phi +" / " + g2l + " " + alpha + " + 1 " + alpha + " + / log " + gamma + " * exp   ?"
+          g2l = expr
+          g2l = g2l + " " + k0 +" <= " + g2l + " " + phi +" / " + g2l + " " + alpha + " + 1 " + alpha + " + / log " + gamma + " * exp   ?"
           
           if gcor != 1.0:
             g2l = g2l + " 0 >=   " + g2l + " log " + repr (gcor) + " * exp   " + g2l + "   ?" 
