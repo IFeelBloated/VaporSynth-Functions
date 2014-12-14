@@ -180,3 +180,23 @@ class Dither (object):
           clipb = self.std.MakeDiff (src, bdife)
           clip  = self.std.MakeDiff (clipb, ddife)
           return clip 
+
+      def SBR16 (self, src):
+          rg11    = self.core.rgvs.RemoveGrain (src, 11)
+          rg11d   = self.std.MakeDiff (src, rg11)
+          rg11dr  = self.core.rgvs.RemoveGrain (rg11d, 11)
+          abrg11d = self.Expr ([rg11d], ["x 32768 - abs"])     
+          ddif    = self.std.MakeDiff (rg11d, rg11dr)
+          abddif  = self.Expr ([ddif], ["x 32768 - abs"]) 
+          abddd   = self.std.MakeDiff (abddif, abrg11d)
+          dmask1  = self.Expr ([abddd], ["x 32768 < 65535 0 ?"])
+          ddifg   = self.Expr ([ddif], ["x 32768 = x x 32768 < 0 65535 ? ?"])
+          ddifg   = self.get_msb (ddifg, native=True)
+          rg11dg  = self.Expr ([rg11d], ["x 32768 = x x 32768 < 0 65535 ? ?"])
+          rg11dg  = self.get_msb (rg11dg, native=True)
+          dmask2  = self.Expr ([ddifg, rg11dg], ["x 128 - y 128 - * 0 < 0 255 ?"])
+          dd1     = self.merge16 (rg11d, ddif, dmask1)
+          blankd  = self.Expr ([dd1], ["32768"])
+          dd2     = self.merge16_8 (blankd, dd1, dmask2)
+          clip    = self.std.MakeDiff (src, dd2)
+          return clip
