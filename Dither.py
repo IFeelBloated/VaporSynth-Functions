@@ -169,3 +169,14 @@ class Dither (object):
           beta  = repr (elast * thr)
           clip  = self.Expr ([flt, src, ref], ["x z - abs " + repr (thr) + " <= x x z - abs " + beta + " >= ? y y " + alpha + " x y - * " + beta + " x y - abs - * + ?"])
           return clip 
+
+      def clamp16 (self, src, bright_limit, dark_limit, overshoot=0.00, undershoot=0.00):
+          os16  = repr (overshoot*256)
+          us16  = repr (undershoot*256)
+          bdif  = self.std.MakeDiff (src, bright_limit)
+          ddif  = self.std.MakeDiff (src, dark_limit)
+          bdife = self.Expr ([bdif], ["x " + os16 + " - 32768 > x " + os16 + " - 32768 ?"])
+          ddife = self.Expr ([ddif], ["x " + us16 + " + 32768 < x " + us16 + " + 32768 ?"])
+          clipb = self.std.MakeDiff (src, bdife)
+          clip  = self.std.MakeDiff (clipb, ddife)
+          return clip 
