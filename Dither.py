@@ -44,13 +44,9 @@ def limit_dif16 (flt, src, ref, thr=0.25, elast=3.0):
     clip  = core.std.Expr ([flt, src, ref], ["x z - abs {thr} <= x x z - abs {beta} >= ? y y {alpha} x y - * {beta} x y - abs - * + ?".format (thr=thr, alpha=alpha, beta=beta)])
     return clip
 
-def merge16 (src1, src2, mask):
-    clip = core.std.Expr ([src1, src2, mask], ["65536 z - x * z y * + 32768 + 65536 /"])
-    return clip
-
 def merge16_8 (src1, src2, mask):
     mask16 = core.fmtc.bitdepth (mask, bits=16, fulls=True, fulld=True)
-    clip   = core.std.Expr ([src1, src2, mask16], ["65536 z - x * z y * + 32768 + 65536 /"])
+    clip   = core.std.MaskedMerge (src1, src2, mask16)
     return clip
 
 def build_sigmoid_expr (string, inv=False, thr=0.5, cont=6.5):
