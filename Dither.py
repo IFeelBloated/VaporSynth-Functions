@@ -137,3 +137,18 @@ def gamma_to_linear (src, tv_range_in=False, tv_range_out=False, curve="srgb", g
 def linear_to_gamma (src, tv_range_in=False, tv_range_out=False, curve="srgb", gcor=1.0, sigmoid=False, thr=0.5, cont=6.5):
     clip  = linear_and_gamma (src, True, tv_range_in, tv_range_out, curve, gcor, sigmoid, thr, cont)
     return clip
+
+def sbr16 (src):
+    rg11   = core.rgvs.RemoveGrain(src, 11)
+    rg11D  = core.std.MakeDiff (src, rg11)
+    rg11DR = core.rgvs.RemoveGrain(rg11D, 11)
+    rg11DD = core.std.Expr ([rg11D, rg11DR], ["x y - x 32768 - * 0 < 32768 x y - abs x 32768 - abs < x y - 32768 + x ? ?"])
+    clip   = core.std.MakeDiff (src, rg11DD)
+    return clip
+
+def clamp16 (src, bright_limit, dark_limit, overshoot=0, undershoot=0):
+    os   = overshoot * 256
+    us   = undershoot * 256
+
+    clip = core.std.Expr ([src, bright_limit, dark_limit], ["x y {os} + > y {os} + x ? z {us} - < z {us} - x ?".format (os=os, us=us)])
+    return clip
