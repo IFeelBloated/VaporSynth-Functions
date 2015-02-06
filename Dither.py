@@ -12,7 +12,7 @@ def get_lsb (src):
 
 def add16 (src1, src2, dif=True):
     core = vs.get_core ()
-    if dif == True:
+    if dif:
        clip = core.std.MergeDiff (src1, src2)
     else:
        clip = core.std.Expr ([src1, src2], ["x y +"])
@@ -20,7 +20,7 @@ def add16 (src1, src2, dif=True):
 
 def sub16 (src1, src2, dif=True):
     core = vs.get_core ()
-    if dif == True:
+    if dif:
        clip = core.std.MakeDiff (src1, src2)
     else:
        clip = core.std.Expr ([src1, src2], ["x y -"])
@@ -56,7 +56,7 @@ def build_sigmoid_expr (string, inv=False, thr=0.5, cont=6.5):
     x1m0 = "1 {thr} 1 - {cont} * exp 1 + / 1 {cont} {thr} * exp 1 + / -".format (thr=thr, cont=cont)
     x0   = "1 {cont} {thr} * exp 1 + /".format (thr=thr, cont=cont)
 
-    if inv == True:
+    if inv:
        expr = "{thr} 1 " + string + " {x1m0} * {x0} + 0.000001 max / 1 - 0.000001 max log {cont} / -".format (x1m0=x1m0, x0=x0, thr=thr, cont=cont)
     else:
        expr = "1 1 {cont} {thr} " + string + " - * exp + / {x0} - {x1m0} /".format (x1m0=x1m0, x0=x0, thr=thr, cont=cont)
@@ -104,7 +104,7 @@ def linear_and_gamma (src, l2g_flag=True, fulls=True, fulld=None, curve="srgb", 
 
     fulld = fulls if fulld is None else fulld
 
-    if fulls == True:
+    if fulls == False:
        expr = "x 4096 - 56064 /"
     else:
        expr = "x 65536 /"
@@ -114,7 +114,7 @@ def linear_and_gamma (src, l2g_flag=True, fulls=True, fulld=None, curve="srgb", 
     if gcor != 1.0:
        g2l = "{g2l} 0 >= {g2l} log {gcor} * exp {g2l} ?".format (g2l=g2l, gcor=gcor)
 
-    if sigmoid == True:
+    if sigmoid:
        g2l = build_sigmoid_expr (g2l , True , thr, cont)
        l2g = build_sigmoid_expr (expr , False , thr, cont)
     else:
@@ -125,16 +125,16 @@ def linear_and_gamma (src, l2g_flag=True, fulls=True, fulld=None, curve="srgb", 
 
     l2g = "{l2g} {k0} {phi} / <= {l2g} {phi} * {l2g} log 1 {gamma} / * exp {alpha} 1 + * {alpha} - ?".format (l2g=l2g, k0=k0, phi=phi, alpha=alpha, gamma=gamma)
 
-    if l2g_flag == True:
+    if l2g_flag:
        expr = l2g
     else:
        expr = g2l
 
-    if fulld == True:
+    if fulld == False:
        expr = expr + " 56064 * 4096 +"
     else:
        expr = expr + " 65536 *"
-              
+
     clip  = core.std.Expr ([src], [expr])
     return clip
 
