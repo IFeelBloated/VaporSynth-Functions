@@ -129,11 +129,11 @@ def EDIResample (src, w=None, h=None, sx=0, sy=0, sw=None, sh=None, kernel_u="sp
     cphfixe = 0 if ocss == "444" else (0 if cplace == "mpeg1" else 0.25 - float (0.25 / crhratio))
     cphfix  = (0 if scss == "444" else (0 if cplace == "mpeg1" else 0.25)) if ocss=="444" else ((0 if cplace == "mpeg1" else -0.5) if scss == "444" else (0 if cplace == "mpeg1" else 0.25 - float (0.25 / chratio)))
 
-    Luma    = core.std.ShufflePlanes (src, planes=0, colorfamily=vs.GRAY) if scss != "GRAY" else src
+    Luma    = core.std.ShufflePlanes (src, planes=0, colorfamily=vs.GRAY) if GetCSS (src) != "GRAY" else src
     LumaL   = Dither.gamma_to_linear (Luma, fulls=fulls, fulld=fulls, curve=curve, gcor=gcor, sigmoid=sigmoid, thr=sigmoidthr, cont=cont) if curve != "linear" else Luma
-    ChromaU = core.std.ShufflePlanes (src, planes=1, colorfamily=vs.GRAY) if scss != "GRAY" else 0
-    ChromaV = core.std.ShufflePlanes (src, planes=2, colorfamily=vs.GRAY) if scss != "GRAY" else 0
-    Linear  = core.std.ShufflePlanes ([LumaL, ChromaU, ChromaV], planes=[0, 0, 0], colorfamily=vs.YUV) if scss != "GRAY" else LumaL
+    ChromaU = core.std.ShufflePlanes (src, planes=1, colorfamily=vs.GRAY) if Gray == False else 0
+    ChromaV = core.std.ShufflePlanes (src, planes=2, colorfamily=vs.GRAY) if Gray == False else 0
+    Linear  = core.std.ShufflePlanes ([LumaL, ChromaU, ChromaV], planes=[0, 0, 0], colorfamily=vs.YUV) if Gray == False else LumaL
     input   = core.fmtc.resample (Linear, (prew if wpre else cw), (preh if hpre else ch), (prel if wpre else 0), (pret if hpre else 0), (prew if wpre else cw), (preh if hpre else ch), kernel="point", fulls=fulls, fulld=fulls) if wpre or hpre else Linear
 
     if enable == False and edit == False:
@@ -144,11 +144,11 @@ def EDIResample (src, w=None, h=None, sx=0, sy=0, sw=None, sh=None, kernel_u="sp
        edgeediV = core.std.ShufflePlanes (edgeedi, planes=2, colorfamily=vs.GRAY)
        edgeediY = core.std.ShufflePlanes (edgeedi, planes=0, colorfamily=vs.GRAY)
     else:
-       edgeediY = core.std.ShufflePlanes (input, planes=0, colorfamily=vs.GRAY) if scss != "GRAY" else input
+       edgeediY = core.std.ShufflePlanes (input, planes=0, colorfamily=vs.GRAY) if GetCSS (src) != "GRAY" else input
        edgeediY = edgeediY if Yedit == False else EDInter (edgeediY, yvct, yhct, 1, 1, True, False, False, nsize, nns, qual, etype, pscrn)
-       edgeediU = core.std.ShufflePlanes (input, planes=1, colorfamily=vs.GRAY) if scss != "GRAY" else 0
+       edgeediU = core.std.ShufflePlanes (input, planes=1, colorfamily=vs.GRAY) if Gray == False else 0
        edgeediU = 0 if Uedit == False else EDInter (edgeediU, cvct, chct, 1, 1, Ut, False, False, nsize, nns, qual, etype, pscrn)
-       edgeediV = core.std.ShufflePlanes (input, planes=2, colorfamily=vs.GRAY) if scss != "GRAY" else 0
+       edgeediV = core.std.ShufflePlanes (input, planes=2, colorfamily=vs.GRAY) if Gray == False else 0
        edgeediV = 0 if Vedit == False else EDInter (edgeediV, cvct, chct, 1, 1, Vt, False, False, nsize, nns, qual, etype, pscrn)
 
     yrh = yrhratio > ratiothr
@@ -174,7 +174,7 @@ def EDIResample (src, w=None, h=None, sx=0, sy=0, sw=None, sh=None, kernel_u="sp
     elif yhratio == chratio and yvratio == cvratio and (mixed == False or (Yedit and Uedit and Vedit)):
        flat = InterK (input, ow, oh, sx, sy, sw, sh, cplace=cplace, kernelh=(kernel_u if yh else kernel_d), kernelv=(kernel_u if yv else kernel_d), taps=taps, a1=a1, a2=a2, a3=a3, fulls=fulls, fulld=fulls)
     else:
-       flatY = core.std.ShufflePlanes (input, planes=0, colorfamily=vs.GRAY) if scss != "GRAY" else input
+       flatY = core.std.ShufflePlanes (input, planes=0, colorfamily=vs.GRAY) if GetCSS (src) != "GRAY" else input
        flatY = InterK (flatY, ow, oh, sx, sy, sw, sh, kernelh=(kernel_u if yh else kernel_d), kernelv=(kernel_u if yv else kernel_d), taps=taps, a1=a1, a2=a2, a3=a3, fulls=fulls, fulld=fulls) if mixed or Yedit == False else flatY
        flatU = core.std.ShufflePlanes (input, planes=1, colorfamily=vs.GRAY) if (mixed or Uedit == False) and Ut else 0
        flatU = InterK (flatU, owc, ohc, (sxc + cphfix), syc, swc, shc, kernelh=(kernel_u if ch else kernel_d), kernelv=(kernel_u if cv else kernel_d), taps=taps, a1=a1, a2=a2, a3=a3, fulls=fulls, fulld=fulls) if (mixed or Uedit == False) and Ut else 0
